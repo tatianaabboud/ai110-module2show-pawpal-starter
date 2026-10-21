@@ -1,36 +1,44 @@
 classDiagram
+    class Priority {
+        <<enumeration>>
+        LOW = 1
+        MEDIUM = 2
+        HIGH = 3
+    }
+
     class Owner {
         +str name
         +int available_minutes
-        +dict preferences
         +list~Pet~ pets
         +add_pet(pet) void
-        +get_all_tasks() list~Task~
+        +get_all_tasks() list~tuple~Pet, Task~~
     }
 
     class Pet {
         +str name
         +str species
         +int age
-        +list~str~ special_needs
         +list~Task~ tasks
         +add_task(task) void
     }
 
     class Task {
+        +str id
         +str title
         +int duration_minutes
-        +str priority
+        +Priority priority
         +time preferred_time
         +str frequency
-        +bool completed
-        +mark_complete() void
-        +is_due(date) bool
+        +date start_date
+        +date last_completed
+        +mark_complete(on_date) void
+        +is_due(on_date) bool
     }
 
     class ScheduledItem {
         <<dataclass>>
         +Task task
+        +str pet_name
         +time start_time
         +time end_time
         +str reason
@@ -39,13 +47,14 @@ classDiagram
     class Scheduler {
         +Owner owner
         +time day_start
-        +generate_plan(date) tuple
-        -_sort_tasks(tasks) list~Task~
-        -_due_tasks(date) list~Task~
+        +generate_plan(on_date) tuple~list~ScheduledItem~, list~tuple~Task, str~~~
+        -_sort_tasks(pairs) list~tuple~Pet, Task~~
+        -_due_tasks(on_date) list~tuple~Pet, Task~~
     }
 
     Owner "1" *-- "0..*" Pet : has
     Pet "1" *-- "0..*" Task : has
+    Task --> Priority
     Scheduler --> Owner : plans for
     Scheduler ..> ScheduledItem : creates
     ScheduledItem --> Task : schedules
